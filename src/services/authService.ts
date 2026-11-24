@@ -38,7 +38,7 @@ export class AuthService {
         // 1. Find user by email (include password for comparison)
         const user = await userRepository.findOne({
             where: { email },
-            select: ['id', 'email', 'name', 'password', 'isActive'],
+            select: ['id', 'email', 'name', 'password', 'isActive', 'isVerified'],
         });
 
         if (!user) {
@@ -46,13 +46,21 @@ export class AuthService {
             throw new UnauthorizedError('Invalid email or password');
         }
 
-        // 2. Check if user is active
+        // 2. Check if email is verified
+        if (!user.isVerified) {
+            logger.warn('Login attempt for unverified account', { email });
+            throw new UnauthorizedError(
+                'Please verify your email address before logging in. Check your inbox for the verification link.'
+            );
+        }
+
+        // 3. Check if user is active
         if (!user.isActive) {
             logger.warn('Login attempt for inactive account', { email });
             throw new UnauthorizedError('Account is deactivated');
         }
 
-        // 3. Compare passwords with bcrypt
+        // 4. Compare passwords with bcrypt
         const isPasswordValid = await bcrypt.compare(password, user.password);
 
         if (!isPasswordValid) {
@@ -60,7 +68,7 @@ export class AuthService {
             throw new UnauthorizedError('Invalid email or password');
         }
 
-        // 4. Generate JWT token
+        // 5. Generate JWT token
         const tokenPayload: TokenPayload = {
             userId: user.id,
             email: user.email,
@@ -72,7 +80,7 @@ export class AuthService {
 
         logger.info('User logged in successfully', { userId: user.id, email });
 
-        // 5. Return token and user data (without password)
+        // 6. Return token and user data (without password)
         return {
             token,
             user: {

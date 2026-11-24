@@ -1,4 +1,3 @@
-
 export class AppError extends Error {
     public readonly statusCode: number;
     public readonly errorCode: string;
@@ -36,6 +35,12 @@ export class ValidationError extends AppError {
     constructor(message: string, details?: any) {
         super(message, 400, 'VALIDATION_ERROR');
         this.details = details;
+    }
+}
+
+export class BadRequestError extends AppError {
+    constructor(message: string) {
+        super(message, 400, 'BAD_REQUEST');
     }
 }
 

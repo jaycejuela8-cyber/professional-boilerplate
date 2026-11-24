@@ -15,9 +15,15 @@ const envSchema = Joi.object({
     DB_DATABASE: Joi.string().required(),
     FRONTEND_URL: Joi.string().uri().default('http://localhost:4200'),
 
-    // Add JWT configuration
     JWT_SECRET: Joi.string().min(32).required(),
     JWT_EXPIRES_IN: Joi.string().default('24h'),
+
+    // Email configuration
+    SMTP_HOST: Joi.string().required(),
+    SMTP_PORT: Joi.number().default(587),
+    SMTP_USER: Joi.string().required(),
+    SMTP_PASS: Joi.string().required(),
+    EMAIL_FROM: Joi.string().email().required(),
 }).unknown();
 
 const { value: env, error } = envSchema.prefs({
@@ -25,7 +31,7 @@ const { value: env, error } = envSchema.prefs({
 }).validate(process.env);
 
 if (error) {
-    throw new Error(`❌ Environment validation error: ${error.message}`);
+    throw new Error(`Environment validation error: ${error.message}`);
 }
 
 export const config = {
@@ -42,10 +48,15 @@ export const config = {
         database: env.DB_DATABASE,
     },
     frontendUrl: env.FRONTEND_URL,
-
-    // Add JWT config
     jwt: {
         secret: env.JWT_SECRET,
         expiresIn: env.JWT_EXPIRES_IN,
+    },
+    email: {
+        host: env.SMTP_HOST,
+        port: env.SMTP_PORT,
+        user: env.SMTP_USER,
+        pass: env.SMTP_PASS,
+        from: env.EMAIL_FROM,
     },
 };
