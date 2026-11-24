@@ -13,6 +13,7 @@ import {
 import { requestLoggingMiddleware } from './middleware/requestLogger';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { userRoutes } from './routes/userRoutes';
+import { authRoutes } from './routes/authRoutes';
 
 const app = express();
 
@@ -39,6 +40,9 @@ app.get('/health', (req, res) => {
     });
 });
 
+// AUTH ROUTES
+app.use('/api/auth', authRoutes);
+
 // USER ROUTES
 app.use('/api/users', userRoutes);
 
@@ -51,17 +55,17 @@ const startServer = async () => {
     try {
         await AppDataSource.initialize();
 
-        logger.info('✅ Database connected successfully');
+        logger.info('Database connected successfully');
 
         if (config.isProd) {
             await AppDataSource.runMigrations();
-            logger.info('✅ Migrations executed');
+            logger.info('Migrations executed');
         }
 
         const server = app.listen(config.port, () => {
-            logger.info(`🚀 Server running on port ${config.port}`);
-            logger.info(`📝 Environment: ${config.env}`);
-            logger.info(`🔗 Healthcheck: http://localhost:${config.port}/health`);
+            logger.info(`Server running on port ${config.port}`);
+            logger.info(`Environment: ${config.env}`);
+            logger.info(`Healthcheck: http://localhost:${config.port}/health`);
         });
 
         // GRACEFUL SHUTDOWN
@@ -77,7 +81,7 @@ const startServer = async () => {
                     }
 
                     logger.info('Database connection closed');
-                    logger.info('✅ Graceful shutdown complete');
+                    logger.info('Graceful shutdown complete');
                     process.exit(0);
                 } catch (error) {
                     logger.error('Error during shutdown:', error);
@@ -95,7 +99,7 @@ const startServer = async () => {
         process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
     } catch (error) {
-        logger.error('❌ Failed to start server:', error);
+        logger.error('Failed to start server:', error);
         process.exit(1);
     }
 };
